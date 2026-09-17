@@ -99,6 +99,14 @@
       background: #222d39;
     }
 
+    .login-btn {
+      background: #263c50;
+    }
+
+    .login-btn:hover {
+      background: #304d65;
+    }
+
     .intel-btn {
       background: #1d3345;
     }
@@ -302,6 +310,7 @@
   <div id="map"></div>
 
   <div class="topbar">
+
     <div class="logo">
       TERRA X
       <span>GEOSPATIAL INTELLIGENCE</span>
@@ -312,265 +321,529 @@
       <button onclick="searchPlace()">🔎</button>
     </div>
 
+    <!-- Login -->
+    <button
+      class="login-btn"
+      onclick="window.location.href='login.html'"
+    >
+      🔐 Login
+    </button>
+
     <button onclick="locateMe()">📍</button>
-    <button class="intel-btn" onclick="openIntel()">🛰️</button>
+
+    <button
+      class="intel-btn"
+      onclick="openIntel()"
+    >
+      🛰️
+    </button>
+
   </div>
+
 
   <div id="resultsPanel" class="panel">
+
     <h3>SEARCH RESULTS</h3>
+
     <div id="results"></div>
+
   </div>
 
+
   <div class="layers">
-    <button onclick="setLayer('street')">Street</button>
-    <button onclick="setLayer('satellite')">Satellite</button>
-    <button onclick="setLayer('terrain')">Terrain</button>
-    <button onclick="loadTargets()">🎯 Targets</button>
+
+    <button onclick="setLayer('street')">
+      Street
+    </button>
+
+    <button onclick="setLayer('satellite')">
+      Satellite
+    </button>
+
+    <button onclick="setLayer('terrain')">
+      Terrain
+    </button>
+
+    <button onclick="loadTargets()">
+      🎯 Targets
+    </button>
+
   </div>
+
 
   <div id="intel">
 
     <div id="intelMap"></div>
 
+
     <div class="intel-header">
+
       <div>
-        <div class="intel-title">TERRA X / INTELLIGENCE</div>
-        <div class="intel-sub">GEOSPATIAL ANALYSIS ENGINE</div>
+
+        <div class="intel-title">
+          TERRA X / INTELLIGENCE
+        </div>
+
+        <div class="intel-sub">
+          GEOSPATIAL ANALYSIS ENGINE
+        </div>
+
       </div>
 
-      <button onclick="closeIntel()">✕</button>
+      <button onclick="closeIntel()">
+        ✕
+      </button>
+
     </div>
+
 
     <div class="stats">
 
       <div class="stat">
-        <div class="stat-label">Target</div>
-        <div id="statTarget" class="stat-value">NONE</div>
+
+        <div class="stat-label">
+          Target
+        </div>
+
+        <div
+          id="statTarget"
+          class="stat-value"
+        >
+          NONE
+        </div>
+
       </div>
 
-      <div class="stat">
-        <div class="stat-label">Area</div>
-        <div id="statArea" class="stat-value">—</div>
-      </div>
 
       <div class="stat">
-        <div class="stat-label">Buildings</div>
-        <div id="statBuildings" class="stat-value">—</div>
+
+        <div class="stat-label">
+          Area
+        </div>
+
+        <div
+          id="statArea"
+          class="stat-value"
+        >
+          —
+        </div>
+
       </div>
 
+
       <div class="stat">
-        <div class="stat-label">Events</div>
-        <div id="statEvents" class="stat-value">—</div>
+
+        <div class="stat-label">
+          Buildings
+        </div>
+
+        <div
+          id="statBuildings"
+          class="stat-value"
+        >
+          —
+        </div>
+
+      </div>
+
+
+      <div class="stat">
+
+        <div class="stat-label">
+          Events
+        </div>
+
+        <div
+          id="statEvents"
+          class="stat-value"
+        >
+          —
+        </div>
+
       </div>
 
     </div>
 
-    <div id="status" class="status"></div>
+
+    <div
+      id="status"
+      class="status"
+    ></div>
+
 
     <div class="intel-tools">
-      <button onclick="selectPoint()">📍 Point</button>
-      <button onclick="startArea()">🔷 Area</button>
-      <button onclick="finishArea()">✓ Finish</button>
-      <button onclick="cancelArea()">✕ Cancel</button>
-      <button onclick="analyzeTarget()">🧠 Analyze</button>
-      <button onclick="saveCurrentTarget()">💾 Save Target</button>
-      <button onclick="locateMe(true)">📡 GPS</button>
+
+      <button onclick="selectPoint()">
+        📍 Point
+      </button>
+
+      <button onclick="startArea()">
+        🔷 Area
+      </button>
+
+      <button onclick="finishArea()">
+        ✓ Finish
+      </button>
+
+      <button onclick="cancelArea()">
+        ✕ Cancel
+      </button>
+
+      <button onclick="analyzeTarget()">
+        🧠 Analyze
+      </button>
+
+      <button onclick="saveCurrentTarget()">
+        💾 Save Target
+      </button>
+
+      <button onclick="locateMe(true)">
+        📡 GPS
+      </button>
+
     </div>
 
   </div>
 
 </div>
 
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 
 <script>
 
-const API_BASE = "https://terra-x-backend.onrender.com";
+const API_BASE =
+  "https://terra-x-backend.onrender.com";
+
 
 const street = L.tileLayer(
   "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
   {
     maxZoom: 19,
-    attribution: "&copy; OpenStreetMap contributors"
+    attribution:
+      "&copy; OpenStreetMap contributors"
   }
 );
+
 
 const satellite = L.tileLayer(
   "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
   {
     maxZoom: 19,
-    attribution: "Tiles &copy; Esri"
+    attribution:
+      "Tiles &copy; Esri"
   }
 );
+
 
 const terrain = L.tileLayer(
   "https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}",
   {
     maxZoom: 13,
-    attribution: "Tiles &copy; Esri"
+    attribution:
+      "Tiles &copy; Esri"
   }
 );
 
+
 const map = L.map("map", {
+
   center: [31.95, 35.93],
+
   zoom: 8,
+
   layers: [street]
+
 });
+
 
 const intelMap = L.map("intelMap", {
+
   center: [31.95, 35.93],
+
   zoom: 8,
+
   layers: [satellite]
+
 });
 
+
 let currentLayer = street;
+
 let currentTarget = null;
+
 let targetMarker = null;
+
 let intelMarker = null;
 
+
 let areaMode = false;
+
 let areaPoints = [];
+
 let areaMarkers = [];
+
 let areaLine = null;
+
 let areaPolygon = null;
+
 
 function setLayer(type) {
 
   map.removeLayer(currentLayer);
 
+
   if (type === "street") {
+
     currentLayer = street;
+
   }
+
 
   if (type === "satellite") {
+
     currentLayer = satellite;
+
   }
+
 
   if (type === "terrain") {
+
     currentLayer = terrain;
+
   }
 
+
   currentLayer.addTo(map);
+
 }
+
 
 function showStatus(text) {
 
-  const box = document.getElementById("status");
+  const box =
+    document.getElementById("status");
+
 
   box.textContent = text;
+
   box.classList.add("show");
 
-  clearTimeout(window.statusTimer);
 
-  window.statusTimer = setTimeout(() => {
-    box.classList.remove("show");
-  }, 3500);
+  clearTimeout(
+    window.statusTimer
+  );
+
+
+  window.statusTimer =
+    setTimeout(() => {
+
+      box.classList.remove("show");
+
+    }, 3500);
+
 }
 
-function setTarget(lat, lon, name = "Target") {
+
+function setTarget(
+  lat,
+  lon,
+  name = "Target"
+) {
 
   currentTarget = {
+
     name,
+
     latitude: lat,
+
     longitude: lon
+
   };
+
 
   if (targetMarker) {
-    map.removeLayer(targetMarker);
+
+    map.removeLayer(
+      targetMarker
+    );
+
   }
 
-  targetMarker = L.marker([lat, lon])
-    .addTo(map)
-    .bindPopup(
-      `<b>${escapeHtml(name)}</b><br>${lat.toFixed(6)}, ${lon.toFixed(6)}`
-    )
-    .openPopup();
 
-  map.setView([lat, lon], 15);
+  targetMarker =
+    L.marker([lat, lon])
+      .addTo(map)
+      .bindPopup(
+        `<b>${escapeHtml(name)}</b><br>${lat.toFixed(6)}, ${lon.toFixed(6)}`
+      )
+      .openPopup();
 
-  document.getElementById("statTarget").textContent = name;
 
-  showStatus("Target selected");
+  map.setView(
+    [lat, lon],
+    15
+  );
+
+
+  document.getElementById(
+    "statTarget"
+  ).textContent = name;
+
+
+  showStatus(
+    "Target selected"
+  );
+
 }
 
-function setIntelTarget(lat, lon, name = "Target") {
+
+function setIntelTarget(
+  lat,
+  lon,
+  name = "Target"
+) {
 
   currentTarget = {
+
     name,
+
     latitude: lat,
+
     longitude: lon
+
   };
 
+
   if (intelMarker) {
-    intelMap.removeLayer(intelMarker);
+
+    intelMap.removeLayer(
+      intelMarker
+    );
+
   }
 
-  intelMarker = L.marker([lat, lon])
-    .addTo(intelMap)
-    .bindPopup(
-      `<b>${escapeHtml(name)}</b>`
-    )
-    .openPopup();
 
-  intelMap.setView([lat, lon], 15);
+  intelMarker =
+    L.marker([lat, lon])
+      .addTo(intelMap)
+      .bindPopup(
+        `<b>${escapeHtml(name)}</b>`
+      )
+      .openPopup();
 
-  document.getElementById("statTarget").textContent = name;
+
+  intelMap.setView(
+    [lat, lon],
+    15
+  );
+
+
+  document.getElementById(
+    "statTarget"
+  ).textContent = name;
+
 }
 
-map.on("click", function(e) {
 
-  setTarget(
-    e.latlng.lat,
-    e.latlng.lng,
-    "Map Target"
-  );
+map.on(
+  "click",
+  function(e) {
 
-});
-
-intelMap.on("click", function(e) {
-
-  if (areaMode) {
-
-    areaPoints.push([
+    setTarget(
       e.latlng.lat,
-      e.latlng.lng
-    ]);
+      e.latlng.lng,
+      "Map Target"
+    );
 
-    const marker = L.circleMarker(
-      [e.latlng.lat, e.latlng.lng],
-      {
-        radius: 5
+  }
+);
+
+
+intelMap.on(
+  "click",
+  function(e) {
+
+    if (areaMode) {
+
+      areaPoints.push([
+
+        e.latlng.lat,
+
+        e.latlng.lng
+
+      ]);
+
+
+      const marker =
+        L.circleMarker(
+          [
+            e.latlng.lat,
+            e.latlng.lng
+          ],
+          {
+            radius: 5
+          }
+        ).addTo(intelMap);
+
+
+      areaMarkers.push(
+        marker
+      );
+
+
+      if (areaLine) {
+
+        intelMap.removeLayer(
+          areaLine
+        );
+
       }
-    ).addTo(intelMap);
 
-    areaMarkers.push(marker);
 
-    if (areaLine) {
-      intelMap.removeLayer(areaLine);
+      areaLine =
+        L.polyline(
+          areaPoints
+        ).addTo(intelMap);
+
+
+      return;
+
     }
 
-    areaLine = L.polyline(areaPoints)
-      .addTo(intelMap);
 
-    return;
+    setIntelTarget(
+
+      e.latlng.lat,
+
+      e.latlng.lng,
+
+      "Intel Target"
+
+    );
+
   }
+);
 
-  setIntelTarget(
-    e.latlng.lat,
-    e.latlng.lng,
-    "Intel Target"
-  );
-
-});
 
 async function searchPlace() {
 
   const query =
-    document.getElementById("searchInput").value.trim();
+    document
+      .getElementById(
+        "searchInput"
+      )
+      .value.trim();
+
 
   if (!query) return;
 
-  showStatus("Searching...");
+
+  showStatus(
+    "Searching..."
+  );
+
 
   try {
 
@@ -583,90 +856,160 @@ async function searchPlace() {
       "&q=" +
       encodeURIComponent(query);
 
-    const response = await fetch(url);
 
-    const data = await response.json();
+    const response =
+      await fetch(url);
 
-    renderResults(data);
+
+    const data =
+      await response.json();
+
+
+    renderResults(
+      data
+    );
 
   } catch (error) {
 
-    showStatus("Search failed");
+    showStatus(
+      "Search failed"
+    );
 
   }
 
 }
 
+
 function renderResults(data) {
 
   const panel =
-    document.getElementById("resultsPanel");
+    document.getElementById(
+      "resultsPanel"
+    );
+
 
   const results =
-    document.getElementById("results");
+    document.getElementById(
+      "results"
+    );
+
 
   results.innerHTML = "";
+
 
   if (!data.length) {
 
     results.innerHTML =
       `<div class="empty">No results found.</div>`;
 
-    panel.classList.add("show");
+
+    panel.classList.add(
+      "show"
+    );
+
 
     return;
+
   }
 
-  data.forEach(item => {
 
-    const card =
-      document.createElement("div");
+  data.forEach(
+    item => {
 
-    card.className = "target-card";
+      const card =
+        document.createElement(
+          "div"
+        );
 
-    card.innerHTML = `
-      <div class="target-name">
-        ${escapeHtml(item.display_name)}
-      </div>
 
-      <div class="target-coords">
-        ${Number(item.lat).toFixed(6)},
-        ${Number(item.lon).toFixed(6)}
-      </div>
-    `;
+      card.className =
+        "target-card";
 
-    card.onclick = () => {
 
-      const lat = Number(item.lat);
-      const lon = Number(item.lon);
+      card.innerHTML = `
 
-      setTarget(
-        lat,
-        lon,
-        item.name || "Search Target"
+        <div class="target-name">
+
+          ${escapeHtml(
+            item.display_name
+          )}
+
+        </div>
+
+        <div class="target-coords">
+
+          ${Number(item.lat).toFixed(6)},
+
+          ${Number(item.lon).toFixed(6)}
+
+        </div>
+
+      `;
+
+
+      card.onclick = () => {
+
+        const lat =
+          Number(item.lat);
+
+
+        const lon =
+          Number(item.lon);
+
+
+        setTarget(
+
+          lat,
+
+          lon,
+
+          item.name ||
+          "Search Target"
+
+        );
+
+
+        panel.classList.remove(
+          "show"
+        );
+
+      };
+
+
+      results.appendChild(
+        card
       );
 
-      panel.classList.remove("show");
+    }
+  );
 
-    };
 
-    results.appendChild(card);
+  panel.classList.add(
+    "show"
+  );
 
-  });
-
-  panel.classList.add("show");
 }
 
-async function locateMe(intelligence = false) {
+
+async function locateMe(
+  intelligence = false
+) {
 
   if (!navigator.geolocation) {
 
-    showStatus("GPS unavailable");
+    showStatus(
+      "GPS unavailable"
+    );
 
     return;
+
   }
 
-  showStatus("Getting location...");
+
+  showStatus(
+    "Getting location..."
+  );
+
 
   navigator.geolocation.getCurrentPosition(
 
@@ -675,78 +1018,119 @@ async function locateMe(intelligence = false) {
       const lat =
         position.coords.latitude;
 
+
       const lon =
         position.coords.longitude;
+
 
       if (intelligence) {
 
         setIntelTarget(
+
           lat,
+
           lon,
+
           "My Location"
+
         );
 
       } else {
 
         setTarget(
+
           lat,
+
           lon,
+
           "My Location"
+
         );
 
       }
 
     },
 
+
     () => {
 
-      showStatus("Could not get location");
+      showStatus(
+        "Could not get location"
+      );
 
     },
 
+
     {
+
       enableHighAccuracy: true,
+
       timeout: 15000,
+
       maximumAge: 0
+
     }
 
   );
 
 }
 
+
 function openIntel() {
 
   document
-    .getElementById("intel")
-    .classList.add("active");
+    .getElementById(
+      "intel"
+    )
+    .classList.add(
+      "active"
+    );
 
-  setTimeout(() => {
-    intelMap.invalidateSize();
-  }, 200);
+
+  setTimeout(
+    () => {
+
+      intelMap.invalidateSize();
+
+    },
+    200
+  );
+
 
   if (currentTarget) {
 
     setIntelTarget(
+
       currentTarget.latitude,
+
       currentTarget.longitude,
+
       currentTarget.name
+
     );
 
   }
 
 }
 
+
 function closeIntel() {
 
   document
-    .getElementById("intel")
-    .classList.remove("active");
+    .getElementById(
+      "intel"
+    )
+    .classList.remove(
+      "active"
+    );
 
 }
+
 
 function selectPoint() {
 
   areaMode = false;
+
 
   showStatus(
     "Tap anywhere on the Intelligence map"
@@ -754,11 +1138,14 @@ function selectPoint() {
 
 }
 
+
 function startArea() {
 
   cancelArea();
 
+
   areaMode = true;
+
 
   showStatus(
     "Tap points on the map to draw an area"
@@ -766,36 +1153,60 @@ function startArea() {
 
 }
 
+
 function finishArea() {
 
-  if (areaPoints.length < 3) {
+  if (
+    areaPoints.length < 3
+  ) {
 
     showStatus(
       "You need at least 3 points"
     );
 
     return;
+
   }
+
 
   areaMode = false;
 
+
   if (areaLine) {
-    intelMap.removeLayer(areaLine);
+
+    intelMap.removeLayer(
+      areaLine
+    );
+
   }
+
 
   if (areaPolygon) {
-    intelMap.removeLayer(areaPolygon);
+
+    intelMap.removeLayer(
+      areaPolygon
+    );
+
   }
 
+
   areaPolygon =
-    L.polygon(areaPoints)
-      .addTo(intelMap);
+    L.polygon(
+      areaPoints
+    ).addTo(intelMap);
+
 
   const area =
-    calculateArea(areaPoints);
+    calculateArea(
+      areaPoints
+    );
 
-  document.getElementById("statArea").textContent =
+
+  document.getElementById(
+    "statArea"
+  ).textContent =
     formatArea(area);
+
 
   showStatus(
     "Area created"
@@ -803,46 +1214,67 @@ function finishArea() {
 
 }
 
+
 function cancelArea() {
 
   areaMode = false;
 
+
   areaPoints = [];
 
-  areaMarkers.forEach(marker => {
 
-    intelMap.removeLayer(marker);
+  areaMarkers.forEach(
+    marker => {
 
-  });
+      intelMap.removeLayer(
+        marker
+      );
+
+    }
+  );
+
 
   areaMarkers = [];
 
+
   if (areaLine) {
 
-    intelMap.removeLayer(areaLine);
+    intelMap.removeLayer(
+      areaLine
+    );
 
     areaLine = null;
 
   }
 
+
   if (areaPolygon) {
 
-    intelMap.removeLayer(areaPolygon);
+    intelMap.removeLayer(
+      areaPolygon
+    );
 
     areaPolygon = null;
 
   }
 
-  document.getElementById("statArea").textContent =
+
+  document.getElementById(
+    "statArea"
+  ).textContent =
     "—";
 
 }
 
-function calculateArea(points) {
+
+function calculateArea(
+  points
+) {
 
   let area = 0;
 
   const R = 6378137;
+
 
   for (
     let i = 0;
@@ -851,48 +1283,70 @@ function calculateArea(points) {
   ) {
 
     const j =
-      (i + 1) % points.length;
+      (i + 1) %
+      points.length;
+
 
     const lat1 =
       points[i][0] *
       Math.PI / 180;
 
+
     const lat2 =
       points[j][0] *
       Math.PI / 180;
+
 
     const lon1 =
       points[i][1] *
       Math.PI / 180;
 
+
     const lon2 =
       points[j][1] *
       Math.PI / 180;
 
+
     area +=
       (lon2 - lon1) *
-      (2 + Math.sin(lat1) + Math.sin(lat2));
+      (
+        2 +
+        Math.sin(lat1) +
+        Math.sin(lat2)
+      );
 
   }
 
-  return Math.abs(area * R * R / 2);
+
+  return Math.abs(
+    area * R * R / 2
+  );
 
 }
 
-function formatArea(area) {
 
-  if (area < 1000000) {
+function formatArea(
+  area
+) {
+
+  if (
+    area < 1000000
+  ) {
 
     return Math.round(area)
-      .toLocaleString() + " m²";
+      .toLocaleString() +
+      " m²";
 
   }
+
 
   return (
     area / 1000000
-  ).toFixed(2) + " km²";
+  ).toFixed(2) +
+  " km²";
 
 }
+
 
 async function saveCurrentTarget() {
 
@@ -906,37 +1360,56 @@ async function saveCurrentTarget() {
 
   }
 
-  showStatus("Saving target...");
+
+  showStatus(
+    "Saving target..."
+  );
+
 
   try {
 
     const response =
       await fetch(
-        API_BASE + "/api/targets",
+
+        API_BASE +
+        "/api/targets",
+
         {
+
           method: "POST",
 
           headers: {
+
             "Content-Type":
               "application/json"
+
           },
 
-          body: JSON.stringify(
-            currentTarget
-          )
+          body:
+            JSON.stringify(
+              currentTarget
+            )
+
         }
+
       );
+
 
     const data =
       await response.json();
 
+
     if (!response.ok) {
 
       throw new Error(
-        data.detail || "Save failed"
+
+        data.detail ||
+        "Save failed"
+
       );
 
     }
+
 
     showStatus(
       "Target saved successfully"
@@ -944,7 +1417,10 @@ async function saveCurrentTarget() {
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      error
+    );
+
 
     showStatus(
       "Could not save target"
@@ -954,29 +1430,40 @@ async function saveCurrentTarget() {
 
 }
 
+
 async function loadTargets() {
 
   showStatus(
     "Loading saved targets..."
   );
 
+
   try {
 
     const response =
       await fetch(
-        API_BASE + "/api/targets"
+
+        API_BASE +
+        "/api/targets"
+
       );
+
 
     const data =
       await response.json();
 
+
     if (!response.ok) {
 
       throw new Error(
-        data.detail || "Loading failed"
+
+        data.detail ||
+        "Loading failed"
+
       );
 
     }
+
 
     renderSavedTargets(
       data.targets || []
@@ -984,7 +1471,10 @@ async function loadTargets() {
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      error
+    );
+
 
     showStatus(
       "Could not load targets"
@@ -994,15 +1484,25 @@ async function loadTargets() {
 
 }
 
-function renderSavedTargets(targets) {
+
+function renderSavedTargets(
+  targets
+) {
 
   const panel =
-    document.getElementById("resultsPanel");
+    document.getElementById(
+      "resultsPanel"
+    );
+
 
   const results =
-    document.getElementById("results");
+    document.getElementById(
+      "results"
+    );
+
 
   results.innerHTML = "";
+
 
   if (!targets.length) {
 
@@ -1011,49 +1511,93 @@ function renderSavedTargets(targets) {
         No saved targets yet.
       </div>`;
 
-    panel.classList.add("show");
+
+    panel.classList.add(
+      "show"
+    );
+
 
     return;
+
   }
 
-  targets.forEach(target => {
 
-    const card =
-      document.createElement("div");
+  targets.forEach(
+    target => {
 
-    card.className =
-      "target-card";
+      const card =
+        document.createElement(
+          "div"
+        );
 
-    card.innerHTML = `
-      <div class="target-name">
-        ${escapeHtml(target.name)}
-      </div>
 
-      <div class="target-coords">
-        ${Number(target.latitude).toFixed(6)},
-        ${Number(target.longitude).toFixed(6)}
-      </div>
-    `;
+      card.className =
+        "target-card";
 
-    card.onclick = () => {
 
-      setTarget(
-        Number(target.latitude),
-        Number(target.longitude),
-        target.name
+      card.innerHTML = `
+
+        <div class="target-name">
+
+          ${escapeHtml(
+            target.name
+          )}
+
+        </div>
+
+        <div class="target-coords">
+
+          ${Number(
+            target.latitude
+          ).toFixed(6)},
+
+          ${Number(
+            target.longitude
+          ).toFixed(6)}
+
+        </div>
+
+      `;
+
+
+      card.onclick = () => {
+
+        setTarget(
+
+          Number(
+            target.latitude
+          ),
+
+          Number(
+            target.longitude
+          ),
+
+          target.name
+
+        );
+
+
+        panel.classList.remove(
+          "show"
+        );
+
+      };
+
+
+      results.appendChild(
+        card
       );
 
-      panel.classList.remove("show");
+    }
+  );
 
-    };
 
-    results.appendChild(card);
-
-  });
-
-  panel.classList.add("show");
+  panel.classList.add(
+    "show"
+  );
 
 }
+
 
 async function analyzeTarget() {
 
@@ -1067,24 +1611,48 @@ async function analyzeTarget() {
 
   }
 
+
   showStatus(
     "Analysis engine coming next..."
   );
 
 }
 
-function escapeHtml(text) {
+
+function escapeHtml(
+  text
+) {
 
   return String(text)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
 
 }
 
 </script>
 
 </body>
-        </html>
+  </html>
