@@ -73,7 +73,7 @@ loginButton.addEventListener("click", async function () {
         setTimeout(function () {
 
             window.location.href =
-                "location.html";
+    "index.html";
 
         }, 1000);
 
