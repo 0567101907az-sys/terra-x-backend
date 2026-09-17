@@ -1,0 +1,58 @@
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, sans-serif;
+    background: #111;
+    color: white;
+}
+
+.location-box {
+    width: 90%;
+    max-width: 450px;
+    padding: 30px;
+    text-align: center;
+    border-radius: 20px;
+    background: #1e1e1e;
+    box-sizing: border-box;
+}
+
+.location-box h1 {
+    margin-bottom: 10px;
+}
+
+.location-box h2 {
+    margin-bottom: 20px;
+}
+
+.location-box p {
+    line-height: 1.7;
+    color: #ccc;
+}
+
+button {
+    width: 100%;
+    padding: 15px;
+    margin-top: 15px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#allowLocation {
+    background: #ffffff;
+    color: #111;
+}
+
+#stopLocation {
+    background: #333;
+    color: white;
+}
+
+#status {
+    margin-top: 20px;
+    font-weight: bold;
+}
