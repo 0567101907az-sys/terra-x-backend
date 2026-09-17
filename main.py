@@ -1,15 +1,35 @@
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
 import json
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
 
+
 app = FastAPI(title="TERRA X Backend")
+
+
+# =========================================================
+# CORS
+# =========================================================
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 security = HTTPBearer()
 
+
+# =========================================================
+# MODELS
+# =========================================================
 
 class Target(BaseModel):
     name: str
@@ -23,12 +43,24 @@ class UserLocation(BaseModel):
     accuracy: float | None = None
 
 
-def supabase_request(method, endpoint, body=None, headers_extra=None):
+# =========================================================
+# SUPABASE
+# =========================================================
+
+def supabase_request(
+    method,
+    endpoint,
+    body=None,
+    headers_extra=None
+):
+
     supabase_url = os.getenv("SUPABASE_URL")
     supabase_key = os.getenv("SUPABASE_SECRET_KEY")
 
     if not supabase_url or not supabase_key:
-        raise Exception("Supabase environment variables are missing")
+        raise Exception(
+            "Supabase environment variables are missing"
+        )
 
     base_url = supabase_url.rstrip("/")
 
@@ -60,7 +92,9 @@ def supabase_request(method, endpoint, body=None, headers_extra=None):
     )
 
     try:
+
         with urlopen(request, timeout=20) as response:
+
             raw = response.read().decode("utf-8")
 
             if raw:
@@ -69,67 +103,108 @@ def supabase_request(method, endpoint, body=None, headers_extra=None):
             return []
 
     except HTTPError as e:
-        details = e.read().decode("utf-8", errors="ignore")
-        raise Exception(f"Supabase error {e.code}: {details}")
+
+        details = e.read().decode(
+            "utf-8",
+            errors="ignore"
+        )
+
+        raise Exception(
+            f"Supabase error {e.code}: {details}"
+        )
 
     except URLError as e:
-        raise Exception(f"Connection error: {e.reason}")
 
+        raise Exception(
+            f"Connection error: {e.reason}"
+        )
+
+
+# =========================================================
+# AUTHENTICATION
+# =========================================================
 
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    credentials: HTTPAuthorizationCredentials =
+    Depends(security)
 ):
+
     access_token = credentials.credentials
 
     supabase_url = os.getenv("SUPABASE_URL")
     supabase_key = os.getenv("SUPABASE_SECRET_KEY")
 
     if not supabase_url or not supabase_key:
+
         raise HTTPException(
             status_code=500,
             detail="Supabase environment variables are missing"
         )
 
-    url = supabase_url.rstrip("/") + "/auth/v1/user"
+    url = (
+        supabase_url.rstrip("/")
+        + "/auth/v1/user"
+    )
 
     request = Request(
         url,
         headers={
             "apikey": supabase_key,
-            "Authorization": f"Bearer {access_token}"
+            "Authorization":
+                f"Bearer {access_token}"
         },
         method="GET"
     )
 
     try:
+
         with urlopen(request, timeout=20) as response:
+
             raw = response.read().decode("utf-8")
+
             return json.loads(raw)
 
     except HTTPError:
+
         raise HTTPException(
             status_code=401,
             detail="Invalid or expired login session"
         )
 
     except URLError:
+
         raise HTTPException(
             status_code=503,
             detail="Authentication service unavailable"
         )
 
 
+# =========================================================
+# ADMIN CHECK
+# =========================================================
+
 def is_admin(user_id):
+
     data = supabase_request(
         "GET",
-        f"/user_roles?select=role&user_id=eq.{user_id}&limit=1"
+        f"/user_roles?select=role"
+        f"&user_id=eq.{user_id}"
+        f"&limit=1"
     )
 
-    return bool(data and data[0].get("role") == "admin")
+    return bool(
+        data
+        and data[0].get("role") == "admin"
+    )
 
+
+# =========================================================
+# BASIC
+# =========================================================
 
 @app.get("/")
 def root():
+
     return {
         "project": "TERRA X",
         "status": "online",
@@ -139,17 +214,25 @@ def root():
 
 @app.get("/health")
 def health():
+
     return {
         "status": "healthy"
     }
 
 
+# =========================================================
+# TARGETS
+# =========================================================
+
 @app.get("/db-test")
 def db_test():
+
     try:
+
         data = supabase_request(
             "GET",
-            "/targets?select=id,name,latitude,longitude,created_at"
+            "/targets?"
+            "select=id,name,latitude,longitude,created_at"
         )
 
         return {
@@ -161,6 +244,7 @@ def db_test():
         }
 
     except Exception as e:
+
         return {
             "status": "error",
             "message": str(e)
@@ -169,10 +253,14 @@ def db_test():
 
 @app.get("/api/targets")
 def get_targets():
+
     try:
+
         data = supabase_request(
             "GET",
-            "/targets?select=id,name,latitude,longitude,created_at&order=created_at.desc"
+            "/targets?"
+            "select=id,name,latitude,longitude,created_at"
+            "&order=created_at.desc"
         )
 
         return {
@@ -182,6 +270,7 @@ def get_targets():
         }
 
     except Exception as e:
+
         raise HTTPException(
             status_code=500,
             detail=str(e)
@@ -190,7 +279,9 @@ def get_targets():
 
 @app.post("/api/targets")
 def create_target(target: Target):
+
     try:
+
         data = supabase_request(
             "POST",
             "/targets",
@@ -204,10 +295,12 @@ def create_target(target: Target):
         return {
             "status": "success",
             "message": "Target saved successfully",
-            "target": data[0] if data else None
+            "target":
+                data[0] if data else None
         }
 
     except Exception as e:
+
         raise HTTPException(
             status_code=500,
             detail=str(e)
@@ -215,7 +308,7 @@ def create_target(target: Target):
 
 
 # =========================================================
-# TERRA X LOCATION SYSTEM
+# LOCATION
 # =========================================================
 
 @app.post("/api/location")
@@ -223,82 +316,114 @@ def update_my_location(
     location: UserLocation,
     user=Depends(get_current_user)
 ):
+
     user_id = user.get("id")
 
     if not user_id:
+
         raise HTTPException(
             status_code=401,
             detail="User identity not found"
         )
 
     try:
+
         data = supabase_request(
             "POST",
-            "/user_locations?on_conflict=auth_user_id",
+            "/user_locations?"
+            "on_conflict=auth_user_id",
+
             {
                 "auth_user_id": user_id,
                 "latitude": location.latitude,
                 "longitude": location.longitude,
                 "accuracy": location.accuracy
             },
+
             {
-                "Prefer": "resolution=merge-duplicates,return=representation"
+                "Prefer":
+                    "resolution=merge-duplicates,"
+                    "return=representation"
             }
         )
 
         return {
             "status": "success",
             "message": "Location updated",
-            "location": data[0] if data else None
+            "location":
+                data[0] if data else None
         }
 
     except Exception as e:
+
         raise HTTPException(
             status_code=500,
             detail=str(e)
         )
 
+
+# =========================================================
+# MY LOCATION
+# =========================================================
 
 @app.get("/api/my-location")
 def get_my_location(
     user=Depends(get_current_user)
 ):
+
     user_id = user.get("id")
 
     try:
+
         data = supabase_request(
             "GET",
-            f"/user_locations?select=id,auth_user_id,latitude,longitude,accuracy,updated_at&auth_user_id=eq.{user_id}&limit=1"
+            "/user_locations?"
+            "select=id,auth_user_id,"
+            "latitude,longitude,accuracy,updated_at"
+            f"&auth_user_id=eq.{user_id}"
+            "&limit=1"
         )
 
         return {
             "status": "success",
-            "location": data[0] if data else None
+            "location":
+                data[0] if data else None
         }
 
     except Exception as e:
+
         raise HTTPException(
             status_code=500,
             detail=str(e)
         )
 
 
+# =========================================================
+# ADMIN LOCATIONS
+# =========================================================
+
 @app.get("/api/admin/locations")
 def get_all_locations(
     user=Depends(get_current_user)
 ):
+
     user_id = user.get("id")
 
     if not user_id or not is_admin(user_id):
+
         raise HTTPException(
             status_code=403,
             detail="Admin access required"
         )
 
     try:
+
         data = supabase_request(
             "GET",
-            "/user_locations?select=id,auth_user_id,latitude,longitude,accuracy,updated_at&order=updated_at.desc"
+            "/user_locations?"
+            "select=id,auth_user_id,"
+            "latitude,longitude,accuracy,updated_at"
+            "&order=updated_at.desc"
         )
 
         return {
@@ -308,7 +433,8 @@ def get_all_locations(
         }
 
     except Exception as e:
+
         raise HTTPException(
             status_code=500,
             detail=str(e)
-        )
+    )
