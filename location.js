@@ -4,11 +4,10 @@ const BACKEND_URL = "https://terra-x-backend.onrender.com";
 
 let locationWatcher = null;
 
-
-// إرسال الموقع إلى Backend
 async function sendLocation(latitude, longitude, accuracy) {
 
-    const accessToken = localStorage.getItem("terra_x_access_token");
+    const accessToken =
+        localStorage.getItem("terra_x_access_token");
 
     if (!accessToken) {
         document.getElementById("status").textContent =
@@ -36,15 +35,15 @@ async function sendLocation(latitude, longitude, accuracy) {
             }
         );
 
-        const data = await response.json();
+        const text = await response.text();
+
+        console.log("Terra X Backend:", response.status, text);
 
         if (!response.ok) {
             throw new Error(
-                data.detail || "Location update failed"
+                `HTTP ${response.status}: ${text}`
             );
         }
-
-        console.log("Terra X location saved:", data);
 
         document.getElementById("status").textContent =
             "تم تحديث موقعك في Terra X 📍";
@@ -54,12 +53,11 @@ async function sendLocation(latitude, longitude, accuracy) {
         console.error("Location API Error:", error);
 
         document.getElementById("status").textContent =
-            "حدث خطأ أثناء إرسال الموقع.";
+            "خطأ: " + error.message;
     }
 }
 
 
-// السماح بمشاركة الموقع
 document.getElementById("allowLocation").addEventListener(
     "click",
     function () {
@@ -75,60 +73,52 @@ document.getElementById("allowLocation").addEventListener(
         document.getElementById("status").textContent =
             "جاري طلب إذن الموقع... 📍";
 
+        locationWatcher =
+            navigator.geolocation.watchPosition(
 
-        locationWatcher = navigator.geolocation.watchPosition(
+                function (position) {
 
-            function (position) {
+                    const latitude =
+                        position.coords.latitude;
 
-                const latitude =
-                    position.coords.latitude;
+                    const longitude =
+                        position.coords.longitude;
 
-                const longitude =
-                    position.coords.longitude;
+                    const accuracy =
+                        position.coords.accuracy;
 
-                const accuracy =
-                    position.coords.accuracy;
+                    console.log(
+                        "Terra X GPS:",
+                        latitude,
+                        longitude,
+                        accuracy
+                    );
 
+                    sendLocation(
+                        latitude,
+                        longitude,
+                        accuracy
+                    );
+                },
 
-                console.log(
-                    "Terra X GPS:",
-                    latitude,
-                    longitude,
-                    accuracy
-                );
+                function (error) {
 
+                    console.error("GPS Error:", error);
 
-                sendLocation(
-                    latitude,
-                    longitude,
-                    accuracy
-                );
-            },
+                    document.getElementById("status").textContent =
+                        "خطأ GPS: " + error.message;
+                },
 
-
-            function (error) {
-
-                console.error(
-                    "GPS Error:",
-                    error
-                );
-
-                document.getElementById("status").textContent =
-                    "لم يتم السماح بالوصول إلى الموقع.";
-            },
-
-
-            {
-                enableHighAccuracy: true,
-                maximumAge: 5000,
-                timeout: 10000
-            }
-        );
+                {
+                    enableHighAccuracy: true,
+                    maximumAge: 5000,
+                    timeout: 10000
+                }
+            );
     }
 );
 
 
-// إيقاف مشاركة الموقع
 document.getElementById("stopLocation").addEventListener(
     "click",
     function () {
