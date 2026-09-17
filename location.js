@@ -1,59 +1,148 @@
 // Terra X - Location System
 
+const BACKEND_URL = "https://terra-x-backend.onrender.com";
+
 let locationWatcher = null;
 
-// زر السماح بالموقع
-document.getElementById("allowLocation").addEventListener("click", function () {
 
-    if (!navigator.geolocation) {
+// إرسال الموقع إلى Backend
+async function sendLocation(latitude, longitude, accuracy) {
+
+    const accessToken = localStorage.getItem("terra_x_access_token");
+
+    if (!accessToken) {
         document.getElementById("status").textContent =
-            "هذا الجهاز لا يدعم تحديد الموقع.";
+            "يجب تسجيل الدخول إلى Terra X أولاً 🔐";
         return;
     }
 
-    document.getElementById("status").textContent =
-        "جاري طلب إذن الموقع... 📍";
+    try {
 
-    locationWatcher = navigator.geolocation.watchPosition(
+        const response = await fetch(
+            `${BACKEND_URL}/api/location`,
+            {
+                method: "POST",
 
-        function (position) {
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${accessToken}`
+                },
 
-            const latitude = position.coords.latitude;
-            const longitude = position.coords.longitude;
+                body: JSON.stringify({
+                    latitude: latitude,
+                    longitude: longitude,
+                    accuracy: accuracy
+                })
+            }
+        );
 
-            console.log("Terra X Location:");
-            console.log("Latitude:", latitude);
-            console.log("Longitude:", longitude);
+        const data = await response.json();
 
-            document.getElementById("status").textContent =
-                "تم تفعيل مشاركة الموقع 📍";
-        },
-
-        function (error) {
-
-            console.log("Location Error:", error);
-
-            document.getElementById("status").textContent =
-                "لم يتم السماح بالوصول إلى الموقع.";
-        },
-
-        {
-            enableHighAccuracy: true,
-            maximumAge: 5000,
-            timeout: 10000
+        if (!response.ok) {
+            throw new Error(
+                data.detail || "Location update failed"
+            );
         }
-    );
-});
 
+        console.log("Terra X location saved:", data);
 
-// زر إيقاف مشاركة الموقع
-document.getElementById("stopLocation").addEventListener("click", function () {
+        document.getElementById("status").textContent =
+            "تم تحديث موقعك في Terra X 📍";
 
-    if (locationWatcher !== null) {
-        navigator.geolocation.clearWatch(locationWatcher);
-        locationWatcher = null;
+    } catch (error) {
+
+        console.error("Location API Error:", error);
+
+        document.getElementById("status").textContent =
+            "حدث خطأ أثناء إرسال الموقع.";
     }
+}
 
-    document.getElementById("status").textContent =
-         "تم إيقاف مشاركة الموقع 🔴";
-});
+
+// السماح بمشاركة الموقع
+document.getElementById("allowLocation").addEventListener(
+    "click",
+    function () {
+
+        if (!navigator.geolocation) {
+
+            document.getElementById("status").textContent =
+                "هذا الجهاز لا يدعم تحديد الموقع.";
+
+            return;
+        }
+
+        document.getElementById("status").textContent =
+            "جاري طلب إذن الموقع... 📍";
+
+
+        locationWatcher = navigator.geolocation.watchPosition(
+
+            function (position) {
+
+                const latitude =
+                    position.coords.latitude;
+
+                const longitude =
+                    position.coords.longitude;
+
+                const accuracy =
+                    position.coords.accuracy;
+
+
+                console.log(
+                    "Terra X GPS:",
+                    latitude,
+                    longitude,
+                    accuracy
+                );
+
+
+                sendLocation(
+                    latitude,
+                    longitude,
+                    accuracy
+                );
+            },
+
+
+            function (error) {
+
+                console.error(
+                    "GPS Error:",
+                    error
+                );
+
+                document.getElementById("status").textContent =
+                    "لم يتم السماح بالوصول إلى الموقع.";
+            },
+
+
+            {
+                enableHighAccuracy: true,
+                maximumAge: 5000,
+                timeout: 10000
+            }
+        );
+    }
+);
+
+
+// إيقاف مشاركة الموقع
+document.getElementById("stopLocation").addEventListener(
+    "click",
+    function () {
+
+        if (locationWatcher !== null) {
+
+            navigator.geolocation.clearWatch(
+                locationWatcher
+            );
+
+            locationWatcher = null;
+        }
+
+        document.getElementById("status").textContent =
+            "تم إيقاف مشاركة الموقع 🔴";
+    }
+);
