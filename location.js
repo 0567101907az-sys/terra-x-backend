@@ -55,5 +55,5 @@ document.getElementById("stopLocation").addEventListener("click", function () {
     }
 
     document.getElementById("status").textContent =
-        "تم إيقاف مشاركة الموقع 🔴";
+         "تم إيقاف مشاركة الموقع 🔴";
 });
