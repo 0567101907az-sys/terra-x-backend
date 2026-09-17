@@ -1,14 +1,23 @@
 // Terra X - Location System
-// المرحلة الأولى: اختبار الحصول على موقع المستخدم
 
-function getMyLocation() {
+let locationWatcher = null;
+
+// زر السماح بالموقع
+document.getElementById("allowLocation").addEventListener("click", function () {
+
     if (!navigator.geolocation) {
-        alert("هذا الجهاز أو المتصفح لا يدعم تحديد الموقع.");
+        document.getElementById("status").textContent =
+            "هذا الجهاز لا يدعم تحديد الموقع.";
         return;
     }
 
-    navigator.geolocation.getCurrentPosition(
+    document.getElementById("status").textContent =
+        "جاري طلب إذن الموقع... 📍";
+
+    locationWatcher = navigator.geolocation.watchPosition(
+
         function (position) {
+
             const latitude = position.coords.latitude;
             const longitude = position.coords.longitude;
 
@@ -16,20 +25,35 @@ function getMyLocation() {
             console.log("Latitude:", latitude);
             console.log("Longitude:", longitude);
 
-            alert(
-                "تم الحصول على موقعك بنجاح 📍\n\n" +
-                "Latitude: " + latitude + "\n" +
-                "Longitude: " + longitude
-            );
+            document.getElementById("status").textContent =
+                "تم تفعيل مشاركة الموقع 📍";
         },
 
         function (error) {
+
             console.log("Location Error:", error);
 
-            alert(
-                "لم نتمكن من الحصول على موقعك.\n" +
-                "تأكد من أنك سمحت لـ Terra X باستخدام الموقع."
-            );
+            document.getElementById("status").textContent =
+                "لم يتم السماح بالوصول إلى الموقع.";
+        },
+
+        {
+            enableHighAccuracy: true,
+            maximumAge: 5000,
+            timeout: 10000
         }
     );
-}
+});
+
+
+// زر إيقاف مشاركة الموقع
+document.getElementById("stopLocation").addEventListener("click", function () {
+
+    if (locationWatcher !== null) {
+        navigator.geolocation.clearWatch(locationWatcher);
+        locationWatcher = null;
+    }
+
+    document.getElementById("status").textContent =
+        "تم إيقاف مشاركة الموقع 🔴";
+});
