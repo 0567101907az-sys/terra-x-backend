@@ -44,7 +44,7 @@ class UserLocation(BaseModel):
 
 
 # =========================================================
-# SUPABASE
+# SUPABASE REQUEST
 # =========================================================
 
 def supabase_request(
@@ -132,13 +132,21 @@ def get_current_user(
     access_token = credentials.credentials
 
     supabase_url = os.getenv("SUPABASE_URL")
-    supabase_key = os.getenv("SUPABASE_SECRET_KEY")
 
-    if not supabase_url or not supabase_key:
+    publishable_key = os.getenv(
+        "SUPABASE_PUBLISHABLE_KEY"
+    )
 
+    if not supabase_url:
         raise HTTPException(
             status_code=500,
-            detail="Supabase environment variables are missing"
+            detail="SUPABASE_URL is missing"
+        )
+
+    if not publishable_key:
+        raise HTTPException(
+            status_code=500,
+            detail="SUPABASE_PUBLISHABLE_KEY is missing"
         )
 
     url = (
@@ -149,7 +157,7 @@ def get_current_user(
     request = Request(
         url,
         headers={
-            "apikey": supabase_key,
+            "apikey": publishable_key,
             "Authorization":
                 f"Bearer {access_token}"
         },
@@ -164,11 +172,16 @@ def get_current_user(
 
             return json.loads(raw)
 
-    except HTTPError:
+    except HTTPError as e:
+
+        details = e.read().decode(
+            "utf-8",
+            errors="ignore"
+        )
 
         raise HTTPException(
             status_code=401,
-            detail="Invalid or expired login session"
+            detail=f"Invalid or expired login session: {details}"
         )
 
     except URLError:
@@ -180,7 +193,7 @@ def get_current_user(
 
 
 # =========================================================
-# ADMIN CHECK
+# ADMIN
 # =========================================================
 
 def is_admin(user_id):
@@ -437,4 +450,4 @@ def get_all_locations(
         raise HTTPException(
             status_code=500,
             detail=str(e)
-    )
+                    )
